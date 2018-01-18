@@ -155,6 +155,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	
 	private volatile boolean receiverRegistered = false;
 	private volatile boolean bindedService = false;
+	private HandlerThread handler = null;
 
 	/**
 	 * Constructor - create an MqttAndroidClient that can be used to communicate with an MQTT server on android
@@ -445,10 +446,16 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 	}
 
 	private void registerReceiver(BroadcastReceiver receiver) {
+		if (handler == null) {
+		    HandlerThread handlerThread = new HandlerThread("MyNewThread");
+		    handlerThread.start();
+		    Looper looper = handlerThread.getLooper();
+		    handler = new Handler(looper);
+		}
 		IntentFilter filter = new IntentFilter();
-				filter.addAction(MqttServiceConstants.CALLBACK_TO_ACTIVITY);
-				LocalBroadcastManager.getInstance(myContext).registerReceiver(receiver, filter);
-				receiverRegistered = true;
+		filter.addAction(MqttServiceConstants.CALLBACK_TO_ACTIVITY);
+		myContext.registerReceiver(receiver, filter, null, handler);
+		receiverRegistered = true;
 	}
 
 	/**
